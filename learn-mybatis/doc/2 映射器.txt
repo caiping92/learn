@@ -1,0 +1,50 @@
+映射器接口是由 Java接口和 XML文件（或者注解）共同完成的
+
+定义参数类型
+描述缓存
+描述SQL语句
+定义查询结果可POJO的映射关系
+
+------------------------------------------------------------------
+映射器有两种方式：
+    XML： 描述一个 xml 的文件，用来生Mapper
+    通过代码实现（接口+注解）：在Configuration里面注册Mapper接口（当然还有注解）
+
+    public <T> void addMapper(Class<T> type) {
+        if (type.isInterface()) {
+          if (hasMapper(type)) {
+            throw new BindingException("Type " + type + " is already known to the MapperRegistry.");
+          }
+          boolean loadCompleted = false;
+          try {
+            knownMappers.put(type, new MapperProxyFactory<T>(type));
+            // It's important that the type is added before the parser is run
+            // otherwise the binding may automatically be attempted by the
+            // mapper parser. If the type is already known, it won't try.
+            MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
+            parser.parse();
+            loadCompleted = true;
+          } finally {
+            if (!loadCompleted) {
+              knownMappers.remove(type);
+            }
+          }
+        }
+      }
+
+      public Collection<Class<?>> getMappers() {
+          return Collections.unmodifiableCollection(knownMappers.keySet());
+        }
+
+        /**
+         * @since 3.2.2
+         */
+        public void addMappers(String packageName, Class<?> superType) {
+          ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<Class<?>>();
+          resolverUtil.find(new ResolverUtil.IsA(superType), packageName);
+          Set<Class<? extends Class<?>>> mapperSet = resolverUtil.getClasses();
+          for (Class<?> mapperClass : mapperSet) {
+            addMapper(mapperClass);
+          }
+        }
+

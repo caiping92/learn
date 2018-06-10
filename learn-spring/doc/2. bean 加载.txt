@@ -1,0 +1,155 @@
+一、容器的基础：XmlBeanFactory
+1. 配置文件封装
+2.加载bean
+    （1）封装资源文件。
+        protected int doLoadBeanDefinitions(InputSource inputSource, Resource resource)
+        	throws BeanDefinitionStoreException {
+        		try {
+        			Document doc = doLoadDocument(inputSource, resource);
+        			return registerBeanDefinitions(doc, resource);
+        		}
+        		catch (BeanDefinitionStoreException ex) {
+        			throw ex;
+        		}
+        		catch (SAXParseException ex) {
+        			throw new XmlBeanDefinitionStoreException(resource.getDescription(),
+        					"Line " + ex.getLineNumber() + " in XML document from " + resource + " is invalid", ex);
+        		}
+        		catch (SAXException ex) {
+        			throw new XmlBeanDefinitionStoreException(resource.getDescription(),
+        					"XML document from " + resource + " is invalid", ex);
+        		}
+        		catch (ParserConfigurationException ex) {
+        			throw new BeanDefinitionStoreException(resource.getDescription(),
+        					"Parser configuration exception parsing XML from " + resource, ex);
+        		}
+        		catch (IOException ex) {
+        			throw new BeanDefinitionStoreException(resource.getDescription(),
+        					"IOException parsing XML document from " + resource, ex);
+        		}
+        		catch (Throwable ex) {
+        			throw new BeanDefinitionStoreException(resource.getDescription(),
+        					"Unexpected exception parsing XML document from " + resource, ex);
+        		}
+        	}
+
+
+    （2）获取输入流。从Resource中获取对应的InputStream 并构造 InputSource
+    （3）通过InputSource实例和Resource继续调用 doLoadBeanDefinitions(InputSource inputSource, Resource resource)
+3. 获取XML 的验证模式
+	（1）DTD XSD 的验证模式
+	（2）验证模式的读取
+4. 获取Document
+	（1）EntityResolver
+5. 解析及注册 BeanDefinitions
+    （1）profile 属性使用
+        <beans profile="dev"
+            xmlns="http://www.springframework.org/schema/beans"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+            xsi:schemaLocation="...">
+
+            <jdbc:embedded-database id="dataSource">
+                <jdbc:script location="classpath:com/bank/config/sql/schema.sql"/>
+                <jdbc:script location="classpath:com/bank/config/sql/test-data.sql"/>
+            </jdbc:embedded-database>
+        </beans>
+        <beans profile="production"
+            xmlns="http://www.springframework.org/schema/beans"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:jee="http://www.springframework.org/schema/jee"
+            xsi:schemaLocation="...">
+
+            <jee:jndi-lookup id="dataSource" jndi-name="java:comp/env/jdbc/datasource"/>
+        </beans>
+        ---------
+        在web.xml 中 加入
+        <context-param>
+            <param-name>Spring.profiles.active</param-name>
+            <param-value>dev</param-value>
+        </context-param>
+    （2）解析并注册 BeanDefinition
+
+二、默认标签解析
+    1. bean 标签的解析 及注册
+    org.springframework.beans.factory.xml.BeanDefinitionParserDelegate 这个类
+     parsexxxxx 去解析
+         例如：
+           /**
+             * Parse constructor-arg sub-elements of the given bean element.
+             */
+            public void parseConstructorArgElements(Element beanEle, BeanDefinition bd) {
+                NodeList nl = beanEle.getChildNodes();
+                for (int i = 0; i < nl.getLength(); i++) {
+                    Node node = nl.item(i);
+                    if (isCandidateElement(node) && nodeNameEquals(node, CONSTRUCTOR_ARG_ELEMENT)) {
+                        parseConstructorArgElement((Element) node, bd);
+                    }
+                }
+            }
+
+     （1）提取元素中的id 以及name 属性
+     （2）进一步解析其他所有属性并统一封装至 public class GenericBeanDefinition extends AbstractBeanDefinition 实例中
+     （3）如果检测到 bean 中没有指定 beanName，那么 使用默认规则为此Bean 生成 beanName
+     （4）将获取到的信息封装到 BeanDefinitionHolder （public class BeanDefinitionHolder implements BeanMetadataElement）实例中
+
+    2.  解析默认标签中的自定义标签元素
+        解析注册BeanDefinition：
+        通过beanName 注册 BeanDefinition.
+        BeanDefinitionReaderUtils.registerBeanDefinition( BeanDefinitionHolder definitionHolder, BeanDefinitionRegistry registry)
+                                                        			throws BeanDefinitionStoreException {
+            // Register bean definition under primary name.
+            String beanName = definitionHolder.getBeanName();
+            registry.registerBeanDefinition(beanName, definitionHolder.getBeanDefinition());
+
+            // Register aliases for bean name, if any.
+            String[] aliases = definitionHolder.getAliases();
+            if (aliases != null) {
+                for (String alias : aliases) {
+                    registry.registerAlias(beanName, alias);
+                }
+            }
+        }
+    3. import 标签解析
+    4. 嵌入式 beans 标签的解析
+三、自定义标签的解析
+    1.自定义标签的使用
+        需要一个扩展的组件
+        定义一个XSD文件描述组件内容
+        创建一个文件，实现BeanDefinitionParser 接口，用来解析 XSD 文件中的定义和组件定义
+        创建一个 Handler 文件，扩展 NamespaceHandlerSupport，目的是将组件注册到Spring容器。
+        编写 Spring.handlers 和Spring.schemas 文件中的定义和组件定义
+        创建一个Handler文件，扩展自 NamespaceHandlerSupport，目的是将组件注册到Spring容器
+        编写Spring.handlers 和Spring.schemas
+
+    2. 解析
+        （1）获取标签的命名空间
+        （2）提取自定义标签处理器
+        （3）标签解析
+四、 bean 的加载
+    （1）转换对应 beanName
+    （2）尝试从缓存中加载单利
+    （3）bean 的实例化
+    （4）原型模式的依赖检查
+    （5）检测 parentBeanFactory
+    （6）将储存 XML 配置文件的GneriBeanDefinition 转化为 RootBeanDefinition
+    （7）寻找依赖
+    （8）针对不同的Scope 进行 bean创建
+    （9）类型转换
+    FactoryBean 的使用获取
+    缓存中获取单利bean
+    从bean 的实例中获取对象
+    获取单例
+        检查缓存是否已经加载过
+        若没有加载，则记录 beanName 的正在加载状态
+        加载单利前记录加载状态
+        通过调用参数传入ObjectFactory 的个体Object 方法实例化 bean
+        加载单例的处理方法调用
+        将结果记录至缓存并加载bean过程中所有记录的各种辅助状态
+        返回处理结束
+    准备创建 bean
+    处理 override 属性
+        实例化的前置处理
+        实例化的后置处理
+    循环依赖
+

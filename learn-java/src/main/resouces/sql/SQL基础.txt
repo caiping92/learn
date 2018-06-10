@@ -1,0 +1,62 @@
+查询：
+     SELECT - FROM - WHERE - GROUP BY (HAVING) -ORDER BY (DESC)
+     结果 |   关系 | 结果条件 | 排序 （什么条件排序） | 结果排序（降序）
+
+增加
+     insert into tableName(column1,column1,column1,...)
+     values (val1,val1,val1,...),(val1,val1,val1,...),...
+
+删除
+     delete from tableName where <boolean 表达式>
+
+更新
+     update tableName
+     set column1 = val1, and column2 = val2,...
+     where <boolean 表达式>
+
+----------------------------------------------------------------------------
+create database if not exists databaseName;
+drop table if exists tableName;
+create table tableName(
+    columnName jdbcType  <关系描述>,
+    columnName jdbcType  <关系描述>,
+    columnName jdbcType  <关系描述>,
+    check <>
+    foreign key rfKey，
+    .....
+    )
+alter table tableName add
+create view as
+    select <columns> from tableName
+    where <boolean 表达式> <group by <having <boolean 表达式>>> order by columnNmae <DESC>
+
+create index indexName on tableName(columnNmae);
+
+事件-条件-动作
+create trigger triggerName
+after UPDATE FO columnName on tableName
+reference
+    OLD ROW AS OLDtAPLE,
+    NEW ROLW AS NEW tAPLE
+FOR EACH ROW
+WHERE()
+    SQL语句
+-------------------------
+drop trigger triggerName;
+
+
+drop procedure if exists procedureName;
+delimiter
+    create procedure procedureName;
+    begin
+        declare v int default 0;
+        while v<100;
+        do
+        insert int tableName values(val);
+        set v=v+1;
+        end while;
+    end
+delimiter;
+----------------
+call procedureName;
+

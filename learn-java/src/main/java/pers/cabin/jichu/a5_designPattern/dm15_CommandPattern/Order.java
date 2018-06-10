@@ -1,0 +1,8 @@
+package pers.cabin.jichu.a5_designPattern.dm15_CommandPattern;
+
+/**
+ * Created by caiping on 2017/3/2.
+ */
+public interface Order {
+    void execute();
+}

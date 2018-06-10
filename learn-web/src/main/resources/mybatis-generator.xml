@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+
+<generatorConfiguration>
+    <!--加载属性文件 -->
+    <properties resource="demo.properties" />
+    <context id="my" targetRuntime="MyBatis3">
+
+        <!-- 实现自定义的代码生成器plugin -->
+        <!--<plugin type="mybatis.PaginationPlugin" />-->
+
+        <commentGenerator>
+            <property name="suppressDate" value="true"/>
+            <!-- 是否去除自动生成的注释 true：是 ： false:否 -->
+            <property name="suppressAllComments" value="true"/>
+        </commentGenerator>
+
+        <!-- 数据库连接URL，用户名，密码 -->
+        <jdbcConnection driverClass="${jdbc.driver}"
+                        connectionURL="${jdbc.url}"
+                        userId="${jdbc.username}"
+                        password="${jdbc.password}"/>
+
+        <!--domain 实体类-->
+        <javaModelGenerator targetPackage="pers.cabin.demo.domain"
+                            targetProject="D:/MyJava_6/learn/learn-web/src/main/java">
+            <property name="enableSubPackages" value="true"/>
+            <property name="trimStrings" value="true"/>
+        </javaModelGenerator>
+
+        <!--映射文件的包名和位置 -->
+        <sqlMapGenerator targetPackage="mappings"
+                         targetProject="D:/MyJava_6/learn/learn-web/src/main//resources">
+            <property name="enableSubPackages" value="true"/>
+        </sqlMapGenerator>
+
+        <!--DAO的包名和位置 -->
+        <javaClientGenerator targetPackage="pers.cabin.demo.dao"
+                             targetProject="D:/MyJava_6/learn/learn-web/src/main/java" type="XMLMAPPER" >
+            <property name="enableSubPackages" value="true"/>
+        </javaClientGenerator>
+
+        <table tableName="t_role" domainObjectName="RoleDo"
+               enableCountByExample="false" enableUpdateByExample="false"
+               enableDeleteByExample="false" enableSelectByExample="false"
+               selectByExampleQueryId="false" />
+
+    </context>
+</generatorConfiguration>

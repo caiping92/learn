@@ -1,0 +1,52 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>pers.cabin.learn</groupId>
+    <artifactId>learn</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <modules>
+        <module>learn-web</module>
+        <module>learn-mybatis</module>
+        <module>learn-java</module>
+        <module>learn-imageprocess</module>
+        <module>learn-spring</module>
+        <module>learn-poi</module>
+        <module>learn-springdata</module>
+        <module>learn-elasticsearch</module>
+        <module>learn-Interview</module>
+        <module>learn-algorithms</module>
+        <module>learn-thrift</module>
+        <module>learn-springboot</module>
+        <module>learn-etl</module>
+        <module>learn-bigdata</module>
+        <module>project-product-api</module>
+        <module>learn-netty</module>
+        <module>learn-mq</module>
+        <module>learn-redis</module>
+        <module>learn-server</module>
+        <module>learn-utils</module>
+    </modules>
+    <packaging>pom</packaging>
+
+    <name>learn</name>
+    <url>http://maven.apache.org</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.3</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

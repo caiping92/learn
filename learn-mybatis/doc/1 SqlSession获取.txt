@@ -1,0 +1,9 @@
+Mybatis 基本构成
+    SqlSessionFactoryBuilder(构造器）：根据配置信息或者代码来生产SqlSessionFactroy（工厂接口）
+    SqlSessionFactory：依靠工厂来生成SqlSession（会话）
+    SqlSession：是一个既可以发送SQL区执行并返回结果，也可以获取Mapper接口
+    SQL Mapper：它是Mybatis新设计的组件，有Java接口和MXML文件（或者注解）构成的，需要给出对应的SQL和映射规则。它负责发送SQL去执行，并返回结果
+
+SqlSessionFactory构建:
+    SqlSessionFactoryBuilder构建
+        将XML配置文件转化为 Configuration对象，存在于整个Mybatis应用的生命周期（单利占用空间小，可以反复使用）

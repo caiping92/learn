@@ -1,0 +1,61 @@
+Mapper 对象存在 MappedStatement 对象中
+
+
+1. 映射器的主要元素：  select, insert, update, delete, parameterMap, resultMap, sql, cache , cache-ref
+
+2. 使用注解参数 使用 javaBean作为参数
+
+<include refid="sqlID" />   sql引用
+<inclued refid="sqlID">
+    <property  name =" "  value ="" />  <!-- 引用参数 -->
+</include>
+
+
+3. resultMap 是Mybatis中最复杂的元素。 作用 是 定义映射规则、级联的更新、规定类型转化器。
+    <resultMap>
+        <constructor>               用于配置构造方法
+            <<idArg></idArg>
+        </constructor>
+        <id/>
+        <result />
+        <association />
+        <collection />
+        <discriminator>
+            <case/>
+        </discriminator>
+    </resultMap>
+
+    级联 Mybatis 中分为3中：association    collection   discriminator
+        数据库中关系 ： 1:n    1:n  m:n
+
+        association： 1 : 1
+        collection: 1 : n
+        discriminator: 鉴别器
+
+        <collection proprety="studentLectureList" colum ="id" select="com.....StudentLectureMapper.findStudentLectreByStuId" >
+            <discriminator value="1" resultMap="maleStudentMap" />
+            <discriminator value="1" resultMap="femaleStudentMap" />
+        <collection>
+
+
+4. 动态SQL
+    if         //单分支判断
+    choose >> when , otherwise  //多分支条件判断
+    where //自动去掉第一个 AND
+    trim   //用于处理SQL的拼装问题，去掉一下字符串，prefix 代表：语句前缀，prefixOverrides 代表要去掉的字符串
+    foreach //循环语句，在 in 语句等列举条件常用，和 JSTL标签中的 foreach 类似，item 变量，collection 表示 被循环的对象，index 第几个对象，open 开始，separator 分割符，close 结束
+        xx in (a,b)
+    test    用于条件判断语句中
+        <select  ....>
+            ....
+            <if test="type=='Y'">
+                ...........
+             </if>
+        </select>
+    bind  通过OGNL 表达式区自定义一个上下文变量，这样方便我们使用，常用 concat  用 % 和参数链接
+        <select   ...>
+            <bind  name="pattern_note" value =""/>
+            select.......
+            ........
+            #{patter_note}
+        </select>

@@ -1,0 +1,163 @@
+动态AOP 自定义标签
+    public class AopNamespaceHandler extends NamespaceHandlerSupport {
+        	@Override
+        	public void init() {
+        		// In 2.0 XSD as well as in 2.1 XSD.
+        		registerBeanDefinitionParser("config", new ConfigBeanDefinitionParser());
+        		registerBeanDefinitionParser("aspectj-autoproxy", new AspectJAutoProxyBeanDefinitionParser());
+        		registerBeanDefinitionDecorator("scoped-proxy", new ScopedProxyBeanDefinitionDecorator());
+
+        		// Only in 2.0 XSD: moved to context namespace as of 2.1
+        		registerBeanDefinitionParser("spring-configured", new SpringConfiguredBeanDefinitionParser());
+        	}
+
+    }
+
+注册AnnotationAwareAspectAutoProxyCreator
+    注册或者升级 AnnotationAwareAspectAutoProxyCreator
+    处理 proxy-target-class 以及 expose-proxy 属性
+创建AOP 代理
+    获取增强方法或者增强器
+    根据获取的增强进行代理
+
+    获取增强器：
+        获取所有beanName，这一步骤中所有 BeanFactory 中注册 Bean 都会被提取出来
+        获取遍历所有 beanName，并找出生命 AspectJ 注解的类，进一步的处理
+        对标记为AspectJ注解类进行增强器的提取
+        将提取结果加入缓存
+
+        获取增强器
+        public class AnnotationAwareAspectJAutoProxyCreator extends AspectJAwareAdvisorAutoProxyCreator {
+            private List<Pattern> includePatterns;
+            private AspectJAdvisorFactory aspectJAdvisorFactory = new ReflectiveAspectJAdvisorFactory();
+            private BeanFactoryAspectJAdvisorsBuilder aspectJAdvisorsBuilder;
+
+            ...
+            @Override
+            	protected List<Advisor> findCandidateAdvisors() {
+            		// Add all the Spring advisors found according to superclass rules.
+            		List<Advisor> advisors = super.findCandidateAdvisors();
+            		// Build Advisors for all AspectJ aspects in the bean factory.
+            		advisors.addAll(this.aspectJAdvisorsBuilder.buildAspectJAdvisors());
+            		return advisors;
+            	}
+            ...
+        }
+            获取所有 beanName，这一步骤中所有在BeanFactory 中注册的 Bean 都会被提取出来
+            遍历所有beanName，并找出生命AspectJ 注解的类，进一步的处理
+            对标记为AspectJ 注解的类进行增强器的提取
+            将提取结果加入缓存
+
+            方法：buildAspectJAdvisors
+            public List<Advisor> buildAspectJAdvisors() {
+            		List<String> aspectNames = null;
+
+            		synchronized (this) {
+            			aspectNames = this.aspectBeanNames;
+            			if (aspectNames == null) {
+            				List<Advisor> advisors = new LinkedList<>();
+            				aspectNames = new LinkedList<>();
+            				//获取所有beanName
+            				String[] beanNames =
+            						BeanFactoryUtils.beanNamesForTypeIncludingAncestors(this.beanFactory, Object.class, true, false);
+                            //循环所有beanName找出对应的增强方法
+            				for (String beanName : beanNames) {
+                                //不合法的 bean 则略过，由子类定义规则，默认返回 true
+            					if (!isEligibleBean(beanName)) {
+            						continue;
+            					}
+            					// We must be careful not to instantiate beans eagerly as in this
+            					// case they would be cached by the Spring container but would not
+            					// have been weaved
+            					Class<?> beanType = this.beanFactory.getType(beanName);
+            					if (beanType == null) {
+            						continue;
+            					}
+            					//如果存在@Aspect 注解
+            					if (this.advisorFactory.isAspect(beanType)) {
+            						aspectNames.add(beanName);
+            						AspectMetadata amd = new AspectMetadata(beanType, beanName);
+            						if (amd.getAjType().getPerClause().getKind() == PerClauseKind.SINGLETON) {
+            							MetadataAwareAspectInstanceFactory factory =
+            									new BeanFactoryAspectInstanceFactory(this.beanFactory, beanName);
+            							//解析所有标记Aspect 注解中的增强方法
+            							List<Advisor> classAdvisors = this.advisorFactory.getAdvisors(factory);
+            							if (this.beanFactory.isSingleton(beanName)) {
+            								this.advisorsCache.put(beanName, classAdvisors);
+            							}
+            							else {
+            								this.aspectFactoryCache.put(beanName, factory);
+            							}
+            							advisors.addAll(classAdvisors);
+            						}
+            						else {
+            							// Per target or per this.
+            							if (this.beanFactory.isSingleton(beanName)) {
+            								throw new IllegalArgumentException("Bean with name '" + beanName +
+            										"' is a singleton, but aspect instantiation model is not singleton");
+            							}
+            							MetadataAwareAspectInstanceFactory factory =
+            									new PrototypeAspectInstanceFactory(this.beanFactory, beanName);
+            							this.aspectFactoryCache.put(beanName, factory);
+            								advisors.addAll(this.advisorFactory.getAdvisors(factory));
+            						}
+            					}
+            				}
+            				this.aspectBeanNames = aspectNames;
+            				return advisors;
+            			}
+            		}
+            根据切入点信息生成增强
+            增强同步实例化增强器
+            获取 DeclareParents 注解
+        寻找匹配的增强器
+        创建代理
+            获取当前类中的属性
+            添加代理接口
+            封装Advisor 并加入到ProxyFactory 中
+            设置要代理的类
+            当然在Spring中还未子类提供定制函数 customizeProxyFactory，子类可以在函数中进行ProxyFactory 的进一步封装
+            进行获取代理操作
+                org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator
+                protected Advisor[] buildAdvisors(String beanName, Object[] specificInterceptors) {
+                		// Handle prototypes correctly...
+                		//解析注册的所有 interceptorName
+                		Advisor[] commonInterceptors = resolveInterceptorNames();
+
+                		List<Object> allInterceptors = new ArrayList<>();
+                		if (specificInterceptors != null) {
+                			// 加入拦截器
+                			allInterceptors.addAll(Arrays.asList(specificInterceptors));
+                			if (commonInterceptors.length > 0) {
+                				if (this.applyCommonInterceptorsFirst) {
+                					allInterceptors.addAll(0, Arrays.asList(commonInterceptors));
+                				}
+                				else {
+                					allInterceptors.addAll(Arrays.asList(commonInterceptors));
+                				}
+                			}
+                		}
+                		if (logger.isDebugEnabled()) {
+                			int nrOfCommonInterceptors = commonInterceptors.length;
+                			int nrOfSpecificInterceptors = (specificInterceptors != null ? specificInterceptors.length : 0);
+                			logger.debug("Creating implicit proxy for bean '" + beanName + "' with " + nrOfCommonInterceptors +
+                					" common interceptors and " + nrOfSpecificInterceptors + " specific interceptors");
+                		}
+
+                		Advisor[] advisors = new Advisor[allInterceptors.size()];
+                		for (int i = 0; i < allInterceptors.size(); i++) {
+                			advisors[i] = this.advisorAdapterRegistry.wrap(allInterceptors.get(i));
+                		}
+                		return advisors;
+                	}
+
+
+                	创建代理
+                	获取代理
+                	    JDK代理
+                	    CGLIB代理
+                    创建AOP静态代理   Instrumentation
+                    编写 agent
+                    打包 agent
+                自定义标签
+                织入

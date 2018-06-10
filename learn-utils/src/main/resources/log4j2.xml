@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn" name="utils" packages="pers.caiping.learn">
+    <Properties>
+        <Property name="baseDir">../logs/utils</Property>
+    </Properties>
+    <Appenders>
+        <RollingFile name="RollingFile" fileName="${baseDir}/app.log"
+                     filePattern="${baseDir}/$${date:yyyy-MM}/app-%d{yyyy-MM-dd-HH}-%i.log.gz">
+            <PatternLayout pattern="%d %p %c{1.} %line [%t] %m%n"/>
+            <Policies>
+                <!-- 每天分割 -->
+                <TimeBasedTriggeringPolicy/>
+                <!-- 文件每100M分割 -->
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+            <!-- 每天文件个数100个 -->
+            <DefaultRolloverStrategy max="100">
+                <!--
+                Nested conditions: the inner condition is only evaluated on files
+                for which the outer conditions are true.
+                -->
+                <Delete basePath="${baseDir}" maxDepth="3">
+                    <IfFileName glob="*/app-*.log.gz">
+                        <IfLastModified age="5d">
+                            <IfAny>
+                                <IfAccumulatedFileSize exceeds="10 GB"/>
+                                <IfAccumulatedFileCount exceeds="10"/>
+                            </IfAny>
+                        </IfLastModified>
+                    </IfFileName>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+        <Console name="console_out_appender" target="SYSTEM_OUT">
+            <!-- 控制台只输出level及以上级别的信息(onMatch),其他的直接拒绝(onMismatch) . -->
+            <ThresholdFilter level="DEBUG" onMatch="ACCEPT"
+                             onMismatch="DENY" />
+            <!-- 输出日志的格式 -->
+            <PatternLayout pattern="=> %5p [%t] %d{yyyy-MM-dd HH:mm:ss} (%F:%L) %m%n" />
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <!--过滤掉spring的一些无用的DEBUG信息-->
+        <Logger name="org.springframework" level="INFO"></Logger>
+        <Root level="info">
+            <AppenderRef ref="RollingFile"/>
+            <AppenderRef ref="console_out_appender"/>
+        </Root>
+    </Loggers>
+</Configuration>
+
+<!--
+参考：
+    https://www.cnblogs.com/hafiz/p/6170702.html\
+    https://www.cnblogs.com/SummerinShire/p/6498977.html
+-->

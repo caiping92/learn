@@ -1,0 +1,30 @@
+Spring是一个分层架构，包含一系列的功能要素，并月 20个模块。
+（1）Core Container
+    核心容器：
+        Core  Beans : 架构的基础部分，提供IoC 和依赖注入 特性。
+            Core 模块主要包含框架核心工具类，Spring的其他组件都要用到这个包里的类，因此Core 包是其他组件的基本核心。
+            Beans 模块是所有应用的用到的，包括 访问配置文件、创建和管理bean以及 IoC/DI 相关的所有操作。
+            Context 是构建Cre 和Beans 模块 基础之上的，提供了一种类似JNDI 注册器，的框架式的对象访问方法，Context 模块继承了Beans 的特性，添加了 对国际化（例如资源绑定）、时间传播、资源加载和对Context的透明创建的支持
+                ApplicationContext 接口时 Context模块的关键
+        Context Expression Language
+            提供了一个强大的表达式语言用于在运行时查询和操纵对象，是JSP 2.1 规范中定义 unifed expression language 的扩展。
+            改语言支持设置、获取属性的值，属性的分配，方法的调用，访问数组上下文、容器和索引器、逻辑和算术运算符、命名变量以及从Spring 的IoC容器中根据名称检索对象。它也支持list 投影、选择和一般的list 聚合
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context-support</artifactId>
+            <version>version</version>
+        </dependency>
+        依赖它即可，会自动加入core 其他依赖
+
+（2）AOP
+    一个符合AOP联盟标准的面向切面编程的一个实现，可以自定义例如方法拦截器和切入点，从而将逻辑代码分开，降低他们之间的耦合性
+    spring-aop 包，aspectjrt，aspectjweaver，cglib-nodep
+
+（3）Data Access/Integration
+        包括 JDBC/ORM/OXM/JMS/Transaction 模块。
+       orm 依赖 jdbc
+
+（4）Web
+    Web/Web-Servlet/Web-Struts/Web-Prolet
+    spring-webmvc（依赖spring-web），commons-io，commons-fileupload
+（5）Test

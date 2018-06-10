@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans  http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!--开启注解-->
+    <context:annotation-config />
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations" value="classpath:practice-mybatis.properties"/>
+    </bean>
+    <!--配置一个数据源，只要实现javax.sql.DataSource 接口就可以-->
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="${driver}"/>
+        <property name="url" value="${url}"/>
+        <property name="username" value="${username}"/>
+        <property name="password" value="${password}"/>
+    </bean>
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean" scope="prototype">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="configLocation" value="classpath:spring-mybatis.xml"/>
+        <property name="mapperLocations" value="mappings/*.xml"/><!-- 指定 mapper的地址 -->
+    </bean>
+
+
+    <bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+            <constructor-arg index="0" ref="sqlSessionFactory" />
+    </bean>
+    <bean id="sqlSessionTemplate1" class="org.mybatis.spring.SqlSessionTemplate" scope="prototype">
+        <constructor-arg index="0" ref="sqlSessionFactory"/>
+        <constructor-arg index="1" value="BATCH"/><!--ExecutorType： SIMPLE / REUSE / BATCH-->
+    </bean>
+
+    <!--使用 SqlSessionTemplate 进行操作 start-->
+   <!-- <bean id="roleMapper" class="pers.caiping.mybatis.dao.impl.RoleMapperImpl">
+        <property name="sqlSessionTemplate" ref="sqlSessionTemplate"/>
+    </bean>-->
+    <!--使用 SqlSessionTemplate 进行操作 start-->
+
+    <!--使用Mapper接口编程的方式，让 SqlSessionTemplate 在开发中小时，太麻烦了 start-->
+    <!--
+    在Mybatis 中，Mapper 只需要一个接口，而不是一个实现类，由MyBatis体系通过动态代理的形成代理对象去运行，Spring也没办法为其生成实现类
+    Mybatis-Spring 提供了 一个MapperFactoryBean 类作为媒介，通过配置它来配置我们想要的Mapper 和MapperFactoryBean
+        有3个参数： mapperInterface，SqlSessionFactory、SqlSessionTemplate
+    -->
+    <!--<bean id="roleMapper2" class="org.mybatis.spring.mapper.MapperFactoryBean">-->
+        <!--<property name="mapperInterface" value="per.caiping.mybatis.dao.roleMapper"/>-->
+        <!--<property name="sqlSessionFactory" ref="sqlSessionFactory" />-->
+        <!--<property name="sqlSessionTemplate" ref="sqlSessionTemplate" />-->
+        <!--如果同时注入 sqlSessionFactory 和 sqlSessionTemplate 这只会开启 sqlSessionTemplate-->
+    <!--</bean>-->
+    <!--使用Mapper接口编程的方式，让 SqlSessionTemplate 在开发中小时，太麻烦了 end-->
+
+    <!--
+    MapperScannerConfigurer: 开启自动扫描的形式配置映射器
+    basePackage: 指定让Spring自动扫描什么包，它会逐层深入扫描
+    annotationClass : 表示如果这个注解表示的时候，才会进行扫描
+    sqlSessionFactoryBeanName: 指定在Spring中定义SQLSessionFactory的bean 名称，如果 它被定义，那么 sqlSessionFactoryBeanName 将不起作用
+    MarkerInterface: 指定实现了什么借口 认为 它是 Mapper，需要一个公共的接口去表示，
+        在Spring配置前要给一个DAO 一个注解，在Spring往往使用@Repository 表示 DAO 的，
+
+    -->
+    <!--
+        采取自动扫描方式创建 mapper bean
+            如此，Spring context 就会 自动扫描 pers.caiping.mybatis.dao 包下的 标注了 @Repository 的接口，自动生成Mapper 实现，无需多余配置
+    -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="pers.caiping.mybatis.dao"/>
+        <property name="sqlSessionTemplateBeanName" value="sqlSessionTemplate"/>
+        <property name="annotationClass" value="org.springframework.stereotype.Repository"/>
+    </bean>
+
+    <!--配置事务-->
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!--使用声明式事务-->
+    <tx:annotation-driven transaction-manager="txManager" />
+    <!--
+    自动扫描 业务层 的方法 到 Spring context 中，
+    扫描 @Service 这些对象
+    -->
+    <context:component-scan base-package="pers.cabin.mybatis.service" use-default-filters="false">
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+    </context:component-scan>
+</beans>

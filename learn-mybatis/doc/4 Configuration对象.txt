@@ -1,0 +1,40 @@
+1. Configuration
+
+2. properties 属性、可以引用外面配置
+    一个配置元素（1.property子元素； 2. properties配置文件 3. 程序参数传递）
+    优先级：参数传递的属性=》resouce/url=》properties属性指定的属性
+3. setting 设置
+    它会改变Mybatis的运行时行为
+4. typeAliases 别名
+    指代名称，遇到类权限定名过长，这个别名可以在MyBatis上下文使用。
+    可以通过<typeAliases>标签定义别名，也可以开启自动扫描注解通过@Aliases
+5. typeHandlers 类型处理器
+    在Mybatis中，没执行或者返回返回结果时，都会用到typeHandler中的相关处理器进行进行换（Mybatis基本已经定义完）
+    在配置文件里，结果集。
+    映射里面直接定义具体typeHandler，就不需要在配置里面定义了
+    在参数中指定typeHandler，这样Mybatis 就会用typeHandler进行转换
+
+6. objectFactory 对象工厂
+    当Mybatis在构建一个结果返回的时候，都会使用ObjectFactory（对象工厂）区构建POJO，在Mybatis中可以定制自己的对象工厂，一般使用默认的即可
+    ObjectFactory 是由 org.apache.ibatis.relfelction.factory.DefaultObjectFactory来服务。
+
+
+
+7. environment 配置环境（分为两大块儿：transactionManager和DataSource）
+8. transaction事务管理
+    有3中配置方式
+    JDBC： 采用JDBC方式管理事务
+    MANAGED：采用容器方式管理事务，在INDI 数据源中常使用
+    自定义，由使用者自定义数据库事务管理办法，适用于特殊应用
+
+9. dataSource 数据源
+    Mybatis 提供默认的配置规则，首先Mybatis会将你的配置读入Configuration类里面，在链接数据库后 调用 getDataBaseProductName() 方法获取数据库的信息，然后在用配置的name值区做匹配到 DatabaseId
+
+10. mappers 映射器
+    引入引射器的方法：
+        （1）文件路径引入 <mappers><mapper resource="" /></mappers>
+        （2）报名引入映射器 <mappers><package name="" /></mappers>
+        （3）用类注册引入映射器 <mappers><maper  class=""/></mappers>
+        （4）用.xml引入映射器 <mappers><maper  url=""/></mappers>
+11 plugins 插件
+    这个是比较复杂的，使用时特别小心，使用某些插件会覆盖掉Mybatis内部核心对象的行为。

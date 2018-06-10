@@ -1,0 +1,73 @@
+警告: 二进制文件TestClass包含org.caiping.a4_jvm.ClassTestCase.TestClass
+Classfile /D:/MyJava_6/mypractice1/out/production/practice-jichu/org/caiping/a4_jvm/ClassTestCase/TestClass.class
+  Last modified 2017-2-28; size 419 bytes
+  MD5 checksum e631f51e6ef5a27283238759cc5a19eb
+  Compiled from "TestClass.java"
+public class org.caiping.a4_jvm.ClassTestCase.TestClass
+  minor version: 0
+  major version: 52
+  flags: ACC_PUBLIC, ACC_SUPER
+Constant pool:
+   #1 = Methodref          #4.#18         // java/lang/Object."<init>":()V
+   #2 = Fieldref           #3.#19         // org/caiping/a4_jvm/ClassTestCase/TestClass.m:I
+   #3 = Class              #20            // org/caiping/a4_jvm/ClassTestCase/TestClass
+   #4 = Class              #21            // java/lang/Object
+   #5 = Utf8               m
+   #6 = Utf8               I
+   #7 = Utf8               <init>
+   #8 = Utf8               ()V
+   #9 = Utf8               Code
+  #10 = Utf8               LineNumberTable
+  #11 = Utf8               LocalVariableTable
+  #12 = Utf8               this
+  #13 = Utf8               Lorg/caiping/a4_jvm/ClassTestCase/TestClass;
+  #14 = Utf8               inc
+  #15 = Utf8               ()I
+  #16 = Utf8               SourceFile
+  #17 = Utf8               TestClass.java
+  #18 = NameAndType        #7:#8          // "<init>":()V
+  #19 = NameAndType        #5:#6          // m:I
+  #20 = Utf8               org/caiping/a4_jvm/ClassTestCase/TestClass
+  #21 = Utf8               java/lang/Object
+{
+  public org.caiping.a4_jvm.ClassTestCase.TestClass();
+    descriptor: ()V
+    flags: ACC_PUBLIC
+    Code:
+      stack=1, locals=1, args_size=1
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: return
+      LineNumberTable:
+        line 6: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       5     0  this   Lorg/caiping/a4_jvm/ClassTestCase/TestClass;
+
+  public int inc();
+    descriptor: ()I
+    flags: ACC_PUBLIC
+    Code:
+      stack=2, locals=1, args_size=1
+         0: aload_0
+         1: getfield      #2                  // Field m:I
+         4: iconst_1
+         5: iadd
+         6: ireturn
+      LineNumberTable:
+        line 10: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       7     0  this   Lorg/caiping/a4_jvm/ClassTestCase/TestClass;
+}
+SourceFile: "TestClass.java"
+
+
+
+=======================================================================================================
+警告: 二进制文件TestClass包含org.caiping.a4_jvm.ClassTestCase.TestClass
+Compiled from "TestClass.java"
+public class org.caiping.a4_jvm.ClassTestCase.TestClass {
+  public org.caiping.a4_jvm.ClassTestCase.TestClass();
+  public int inc();
+}

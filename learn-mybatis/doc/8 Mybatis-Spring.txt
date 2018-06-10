@@ -1,0 +1,135 @@
+整合包：MyBatis-Spring-xxx.jar
+
+1. Spring 核心
+    （1）IOC : 反转控制，可插拔功能
+        IOC 注入方式：构造方法注入、setter注入、接口注入。
+            构造方法注入：
+                <bean id="xx" class="xx.xx.xx.Yyy">
+                    <constructor-arg index="0" value="1" />
+                    <constructor-arg index="1" value="1" />
+                    <constructor-arg index="2" value="1" />
+                </bean>
+            setter注入：
+                <bean id="xx" class ="xx.x.xx.x.Xx">
+                    <property name="" value="" />
+                    <property name="" value="" />
+                    <property name="" value="" />
+                </bean>
+                或者使用 注解进行注入
+            接口注入: Spring 的接口注入方式，是一种注入其他服务的接口，比如JNDI 数据源的注入，在Tomcat 或者其他服务器中 往往 配置了 JNDI 数据源，那么就可以使用接口注入需要的资源
+                <bean id="dataSsource" class="org.Springframework.jndi.JndiObjectFactoryBean" />
+                    <property name="jndiName" />
+                        <value>java:com/xxx/x/mybatis</value>
+                    </property>
+                </bean>
+                允许从一个远程服务中注入一些服务到本地调用
+
+
+    （2）AOP : 面向切面编程
+        在Mybatis-Spring中，最大的用处就是：事务控制。
+            当程序进入到insertRole方法的时候，Spring就会读取配置的传播行为进行设置，即：当前方法法如果有事务加入当前事务，否则就创建新的事务。
+            传播行为：指方法之间的回调问题。
+
+2. Mybatis-Spring
+出现Java.lang.NoClassDefFoundError: org/apache/ibatis/cursor/Cursor
+mybatis的3.4.0及以上版本只支持mybatis-spring1.3.0及以上版本
+mybatis的3.4.0以下版本用mybatis-spring1.3.0以下版本。
+
+    Mybatis社区编写。
+    在Spring中，配置的方法较多，也可以用XML进行配置，也可以注解配置。主要用注解配置Mybatis-Spring
+
+    配置Mybatis-Spring几大部分
+        配置数据源
+        配置SqlSessionFactory
+        配置SqlSessionTemplate
+        配置Mapper
+        配置事务
+
+        SqlSession 是通过SqlSessionTemplate 来实现的，提供了对SqlSession 操作封装，因此通过SqlSessionTemplate 可以得到Mapper
+    首先配置一个数据源。该数据源只要实现javax.sql.DataSource 接口即可，可以是任意的数据源，也可以从JNDI 容器中获得数据源，然后构建SqlSessionFactoryBean对象，注入一个数据源和配置对象
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+    注意：<context:annotation-config> 和 <context:component-scan>的区别
+    <context:annotation-config> 是用于激活那些已经在spring容器里注册过的bean（无论是通过xml的方式还是通过package sanning的方式）上面的注解，是一个注解处理工具。
+    <context:component-scan>除了具有<context:annotation-config>的功能之外，<context:component-scan>还可以在指定的package下扫描以及注册javabean 。
+-------------------------------------------------------------------------------------------------------------------------------------
+    <!--开启注解-->
+    <!-- 使用Annotation自动注册Bean，解决事物失效问题：在主容器中不扫描@Controller注解，在SpringMvc中只扫描@Controller注解。  -->
+    <context:component-scan base-package="pers.caiping.mybatis"><!-- base-package 如果多个，用“,”分隔 -->
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+    <!--加载配置文件-->
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations" value="classpath:practice-mybatis.properties"/>
+    </bean>
+
+     <!--配置一个数据源，只要实现javax.sql.DataSource 接口就可以-->
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="${driver}"/>
+        <property name="url" value="${url}"/>
+        <property name="username" value="${username}"/>
+        <property name="password" value="${password}"/>
+    </bean>
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean" scope="prototype">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="configLocation" value="classpath:spring-mybatis.xml"/>
+        <property name="mapperLocations" value="mappers/*.xml"/><!-- 指定 mapper的地址 -->
+    </bean>
+    <!-- 可以直接在MapperScanner中直接注入 SqlSessionFactory，也可以不需要这对象即：
+     <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+     		<property name="basePackage" value="pers.caiping.mybatis.da" />
+     		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
+     	</bean>
+     -->
+     <bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+                <constructor-arg index="0" ref="sqlSessionFactory" />
+                  <!--<constructor-arg index="1" value="BATCH"/>-->
+                  <!--ExecutorType： SIMPLE / REUSE / BATCH-->
+        </bean>
+     <!--
+        采取自动扫描方式创建 mapper bean
+            如此，Spring context 就会 自动扫描 pers.caiping.mybatis.dao 包下的 标注了 @Repository 的接口，自动生成Mapper 实现，无需多余配置
+    -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="pers.caiping.mybatis.dao"/>
+        <property name="sqlSessionTemplateBeanName" value="sqlSessionTemplate"/>
+        <property name="annotationClass" value="org.springframework.stereotype.Repository"/>
+    </bean>
+
+    <!--配置事务-->
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+	<!-- 配置 Annotation 驱动，扫描@Transactional注解的类定义事务  -->
+	<tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true"/>
+
+	<!--利用AOP 配置事务 start -->
+	<!-- 配置事务通知属性 -->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <!-- 定义事务传播属性 -->
+        <tx:attributes>
+            <tx:method name="insert*" propagation="REQUIRED" />
+            <tx:method name="update*" propagation="REQUIRED" />
+            <tx:method name="edit*" propagation="REQUIRED" />
+            <tx:method name="save*" propagation="REQUIRED" />
+            <tx:method name="add*" propagation="REQUIRED" />
+            <tx:method name="new*" propagation="REQUIRED" />
+            <tx:method name="set*" propagation="REQUIRED" />
+            <tx:method name="remove*" propagation="REQUIRED" />
+            <tx:method name="delete*" propagation="REQUIRED" />
+            <tx:method name="change*" propagation="REQUIRED" />
+            <tx:method name="check*" propagation="REQUIRED" />
+            <tx:method name="get*" propagation="REQUIRED" read-only="true" />
+            <tx:method name="find*" propagation="REQUIRED" read-only="true" />
+            <tx:method name="load*" propagation="REQUIRED" read-only="true" />
+            <tx:method name="*" propagation="REQUIRED" read-only="true" />
+        </tx:attributes>
+    </tx:advice>
+    <!-- 配置事务切面 -->
+    <aop:config>
+        <aop:pointcut id="serviceOperation"
+            expression="execution(* pers.caiping.mybatis.service.*.*(..))" />
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="serviceOperation" />
+    </aop:config>
+    <!--利用AOP 配置事务 end -->

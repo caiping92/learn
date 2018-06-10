@@ -1,0 +1,194 @@
+反射
+JDK动态代理 缺陷：必须依赖接口才可以使用。
+CGLIB动态代理
+
+一、Mybatis的运行分为2部分：
+    1. 读取配置文件到Configuration对象，创建SQLSessionFactory
+    2. SqlSession执行的过程。
+
+    构建SqlSession过程：
+        一、通过 XMLConfigurationBuilder 解析XML文件对象
+        二、通过SQLSessionFactoryBuilder 使用Configuration 对象去创建SQLSessionFactory。（默认使用DefaultSQLSessionFactory创建）
+        三、获得SqlSession
+
+    映射器内部组成：
+        映射器 由3个部分组成。
+            MappedStatement，保存映射器的一个节点 （select|insert|delete|update ），包括许多SQL、SQL的 ID 、缓存、resultMap、parameterType、resultType、langguageDriver
+            SqlSource，提供 BoundSql对象的地方
+            BoundSql，它是简历SQL和参数对象的地方。常用3个属性：SQL、parameterObject、parameterMappings
+
+            Mybatis 用Mapper接口（Dao接口）就能够运行SQL，因为 映射器的XML 文件的命名空间 对应就是这个接口的全路径，那么它根据全路径和方法名就能够帮顶起来，通过动态代理技术，让接口跑起来
+        然后采用命令模式，最后使用SqlSession接口的方法使得能够执行查询
+
+        SqlSession 四大对象
+            映射器就是一个动态代理对象，进入到MapperMethod 的 execute 方法
+            Mapper 执行过程：通过Executor、StatementHandler、ParameterHandler、ResultHandler来完成数据库操作和返回结果的。
+            Executor调动其他3个Handler。
+            StatementHandler 使用数据库的Statement（PrepareStatement）执行操作
+            ParameterHandler对SQL的参数处理，ResultHandler对最后数据集ResultSet的封装进行处理
+---------------------------------------------------------------------------------------------------------------------
+二、插件 （插件对象的实例是一开始就被初始化，而不是用到的时候才初始化）
+    在Configuration 对象的创建方法里，Mybatis 用责任链去封装他们。使用插件就意味着修改Mybatis 的底层封装。
+    插件接口： Interceptor
+
+    intercept 方法 : 直接覆盖所有拦截对象的原方法。通过反射（传入参数 Invocation对象）调度原来对象的方法
+    plugin 方法: target是被拦截对象，作用是给拦截对象生成一个代理对象，并返回它
+    setProperties 方法： 允许 plugin 元素中 配置所需参数，方法 在插件初始化的时候 就被调用一次，然后把插件对象存入到配置中，以便后面取出
+
+    在 Configuration 对象中 有个 interceptorChain 属性，有个 addInterceptor 方法； 完成初始化插件保存在List这个对象里面
+
+    ...
+    protected final InterceptorChain interceptorChain = new InterceptorChain();
+    ...
+      public void addInterceptor(Interceptor interceptor) {
+        interceptorChain.addInterceptor(interceptor);
+      }
+
+    Mybatis 提供了一个工具类，用来生成代理对象——Plugin 类, 它实现了 InvocationHandler 接口，采用 JDK 的动态代理
+    public class Plugin implements InvocationHandler {
+    ...
+
+      public static Object wrap(Object target, Interceptor interceptor) {
+        Map<Class<?>, Set<Method>> signatureMap = getSignatureMap(interceptor);
+        Class<?> type = target.getClass();
+        Class<?>[] interfaces = getAllInterfaces(type, signatureMap);
+        if (interfaces.length > 0) {
+          return Proxy.newProxyInstance(
+              type.getClassLoader(),
+              interfaces,
+              new Plugin(target, interceptor, signatureMap));
+        }
+        return target;
+      }
+
+      public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+          try {
+            Set<Method> methods = signatureMap.get(method.getDeclaringClass());
+            if (methods != null && methods.contains(method)) {
+              return interceptor.intercept(new Invocation(target, method, args));
+            }
+            return method.invoke(target, args);
+          } catch (Exception e) {
+            throw ExceptionUtil.unwrapThrowable(e);
+          }
+        }
+
+    ...
+    }
+
+---------------------------------------------------------------------------------------------------------------------
+    常用的工具类——MetaObject。有效读取或者修改一些重要对象的属性。
+    常用到
+      public static MetaObject forObject(Object object, ObjectFactory objectFactory, ObjectWrapperFactory objectWrapperFactory) {
+        if (object == null) {
+          return SystemMetaObject.NULL_META_OBJECT;
+        } else {
+          return new MetaObject(object, objectFactory, objectWrapperFactory);
+        }
+      }
+
+      public Object getValue(String name) {
+          PropertyTokenizer prop = new PropertyTokenizer(name);
+          if (prop.hasNext()) {
+            MetaObject metaValue = metaObjectForProperty(prop.getIndexedName());
+            if (metaValue == SystemMetaObject.NULL_META_OBJECT) {
+              return null;
+            } else {
+              return metaValue.getValue(prop.getChildren());
+            }
+          } else {
+            return objectWrapper.get(prop);
+         }
+     }
+
+
+  public void setValue(String name, Object value) {
+    PropertyTokenizer prop = new PropertyTokenizer(name);
+    if (prop.hasNext()) {
+      MetaObject metaValue = metaObjectForProperty(prop.getIndexedName());
+      if (metaValue == SystemMetaObject.NULL_META_OBJECT) {
+        if (value == null && prop.getChildren() != null) {
+          return; // don't instantiate child path if value is null
+        } else {
+          metaValue = objectWrapper.instantiatePropertyValue(name, prop, objectFactory);
+        }
+      }
+      metaValue.setValue(prop.getChildren(), value);
+    } else {
+      objectWrapper.set(prop, value);
+    }
+  }
+
+
+插件开发：
+    1. 确定需要拦截的签名
+        （1）确定需要拦截的对象需要。 Executor、StatementHandler、ParameterHandler、ResultHandler
+        （2）拦截方法和参数。查询过程是通过Executor 调度StatementHandler 来完成的。调度 StatementHandler 的 prepare 方法 预编译 SQL，于是我们需要拦截 便是 prepare 方法，
+        在此之前完成SQL的重新编写。StatementHandler 定义：
+                /*
+                 *    Copyright 2009-2012 the original author or authors.
+                 *
+                 *    Licensed under the Apache License, Version 2.0 (the "License");
+                 *    you may not use this file except in compliance with the License.
+                 *    You may obtain a copy of the License at
+                 *
+                 *       http://www.apache.org/licenses/LICENSE-2.0
+                 *
+                 *    Unless required by applicable law or agreed to in writing, software
+                 *    distributed under the License is distributed on an "AS IS" BASIS,
+                 *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                 *    See the License for the specific language governing permissions and
+                 *    limitations under the License.
+                 */
+                package org.apache.ibatis.executor.statement;
+
+                import java.sql.Connection;
+                import java.sql.SQLException;
+                import java.sql.Statement;
+                import java.util.List;
+
+                import org.apache.ibatis.executor.parameter.ParameterHandler;
+                import org.apache.ibatis.mapping.BoundSql;
+                import org.apache.ibatis.session.ResultHandler;
+
+                /**
+                 * @author Clinton Begin
+                 */
+                public interface StatementHandler {
+
+                  Statement prepare(Connection connection)
+                      throws SQLException;
+
+                  void parameterize(Statement statement)
+                      throws SQLException;
+
+                  void batch(Statement statement)
+                      throws SQLException;
+
+                  int update(Statement statement)
+                      throws SQLException;
+
+                  <E> List<E> query(Statement statement, ResultHandler resultHandler)
+                      throws SQLException;
+
+                  BoundSql getBoundSql();
+
+                  ParameterHandler getParameterHandler();
+
+                }
+        （3）配置和运行
+        在Mybatis 配置文件里面配置才能够使用插件
+        <plugins>
+                <plugin interceptor="pers.caiping.practice.mybatis.plugin.MyPlugin">
+                    <property name="dbType"  value="mysql"/>
+                </plugin>
+        </plugins>
+
+总结
+1.插件生成的是层层代理对象的责任链模式，通过反射方法运行，性能不高，所以减少插件就能减少代理，从而提高系统的性能
+2.编写插件的时候需要了解Mybatis的运行原理，了解四大对象及其方法的作用，准确判断拦截什么对象，什么方法，参数时什么，才能够确定如何编写
+3.在插件中往往需要读取和修改Mybatis 映射器中的对象属性，掌握Mybatis 映射器内部组成的知识
+
+
+
+

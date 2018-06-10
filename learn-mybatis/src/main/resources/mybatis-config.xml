@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <!-- 引用的配置文件-->
+    <properties resource="practice-mybatis.properties"/>
+    <!--
+    <settings>
+        <setting name="" value=""/>
+    </settings>-->
+
+    <!--<typeAliases>
+        <typeAlias type="pers.caiping.mybatis.domain.Role" alias="role"/>
+    </typeAliases>-->
+    <!--
+    Mybatis在预处理语句（PreparedStatement）中设置一个参数时，或者从结果集（ResultSet）中取出一个值，都会注册了一个typeHandler进行处理
+    typeHandler 允许根据项目的需要自定义设置java传递到数据库的参数，或者从数据库读取数据，我们需要进行特殊处理，这些定义可以在自定义的typeHandler中处理
+
+    typeHandler 常用配置为： java类型（javaType）、JDBC类型（jdbcType）。TypeHandler作用就是讲参数将javaType转换为jdbcType，或者从数据库中取出时将结果转化为javaType
+
+    -->
+    <!--<typeHandlers></typeHandlers>-->
+
+    <plugins>
+        <plugin interceptor="pers.cabin.mybatis.plugin.MyPlugin">
+            <property name="dbType"  value="mysql"/>
+        </plugin>
+    </plugins>
+
+    <!-- 定义数据库信息，默认使用development数据构建环境-->
+    <environments default="development">
+        <environment id="development">
+            <!-- 采用jdbc事务管理-->
+            <transactionManager type="JDBC"/>
+            <!-- 数据库连接信息-->
+            <dataSource type="POOLED">
+                <property name="driver" value="${driver}"/>
+                <property name="url" value="${url}"/>
+                <property name="username" value="${username}"/>
+                <property name="password" value="${password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+    <!-- 定义映射器-->
+    <mappers>
+        <!--1. 指定mapper接口包名 -->
+        <!--
+
+        需要将mapper接口类名和mapper.xml映射文件名称保持一致且在同一个目录中，
+        注意：要使用的是mapper代理。两个文件要在同一个目录
+         -->
+        <!--<package name="pers.caiping.mybatis.dao"/>-->
+
+        <!--2. 通过resource加载单个映射文件-->
+        <!--
+        需要将mapper接口类名和mapper.xml映射文件名称保持一致且在同一个目录中，
+        注意：要使用的是mapper代理。两个文件要在同一个目录
+         -->
+        <!--<mapper class=""/>-->
+        <mapper resource="mappings/RoleMapper.xml"/>
+        <mapper resource="mappings/RoleMapper2.xml"/>
+    </mappers>
+
+
+
+</configuration>
