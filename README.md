@@ -1,16 +1,7 @@
  #content
  
-- java基础
-- Mybatis
-- spring
-- springdata
-- poi
-- web整合
-- node
-- thrift
-- bigdata
-- 算法
-- 面试试题
+    java基础/Mybatis/spring/springdata/poiweb整合/node/thrift/bigdata/算法/面试试题
+
 
 #附录
 ```
