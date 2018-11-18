@@ -1,4 +1,4 @@
 import sys,os
 print(sys.path)
 
-print sys.platform
+print (sys.platform)
