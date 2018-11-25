@@ -28,6 +28,23 @@ def get_dirs(path):
     return dirs
 
 
+def find_file(path, filter=""):
+    '''
+    find file from path
+    :param path:
+    :param filename:
+    :return:
+    '''
+    files = []
+    if os.path.isfile(path) :
+        if os.path.basename(path).__contains__(filter):
+            files.append(path)
+    else:
+        for f in os.listdir(path):
+            files += find_file(os.path.join(path, f), filter)
+    return files
+
+
 def result(path="D:/tmp", filename="result.log"):
     if not os.path.exists(path):
         os.makedirs(path)
@@ -42,15 +59,24 @@ if __name__ == "__main__":
     get_os_info()
     print("-" * 30)
 
-    tmp = "E:/workspace"
+    tmp = "E:\\workspace"
     print("Start get %s info ...\n " % tmp)
 
     fs = result()
-    fs.write("-" * 30 + "\n")
+
+    filter = ".json"
+    filter_file = find_file(tmp, filter)
+
+    fs.write("\n" + "-" * 30 + "\n")
+    fs.write("%s contains %s (%s): " % (tmp, filter, len(filter_file)))
+    fs.write("\n" + "-" * 30 + "\n")
+
+    fs.write("\n".join(filter_file))
+    fs.write("\n" + "-" * 30 + "\n")
 
     dirs = get_dirs(tmp)
     files = get_files(tmp)
-
+    fs.write("\n" + "-" * 30 + "\n")
     fs.write(tmp + " all files(%s): \n" % len(files))
     fs.write(tmp + " all dirs(%s):\n" % len(dirs))
     fs.write("-" * 30 + "\n")
