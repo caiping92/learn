@@ -50,7 +50,14 @@ def test2(path, filename="f1"):
     else:
         print('The file donot close')
 
-if __name__ == "__main__":
+
+def content(file, mode="r"):
+    with open(file) as f:
+        for line in f:
+            yield line
+
+
+def demo1():
     '''
         r	以只读方式打开文件。文件的指针将会放在文件的开头。这是默认模式。
         w	打开一个文件只用于写入。如果该文件已存在则将其覆盖。如果该文件不存在，创建新文件。
@@ -72,6 +79,17 @@ if __name__ == "__main__":
             如果该文件不存在，创建新文件用于读写。
     '''
     path = "D:/tmp"
-    filename="f2.log"
-    test2(path,filename)
-    test1(path,filename)
+    filename = "f2.log"
+    test2(path, filename)
+    test1(path, filename)
+
+
+def demo2():
+    file = "D:\\tmp\\result.log"
+    for line in content(file):
+        print(line)
+
+
+if __name__ == "__main__":
+    # demo1()
+    demo2()
