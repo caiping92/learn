@@ -7,6 +7,7 @@ from conf import settings
 from common.logging import get_logger
 from conf.settings import status_code
 
+log = get_logger("server")
 
 class Response():
     def __init__(self, code, data=None):
@@ -24,7 +25,6 @@ class Response():
 
 
 class FTPHandler(socketserver.BaseRequestHandler):
-    log = get_logger("FTPHandler")
 
     def handle(self):
         while True:
@@ -40,8 +40,8 @@ class FTPHandler(socketserver.BaseRequestHandler):
             '''
             action_ = content["action"]
             data_ = content["data"]
-            FTPHandler.log.info("action_: " + str(action_))
-            FTPHandler.log.info("data: " + str(data_))
+            log.info("action_: " + str(action_))
+            log.info("data: " + str(data_))
             if action_ and hasattr(self, action_):
                 FTPHandler.__dict__[action_](self, **data_).send(self.request)
 
@@ -55,7 +55,7 @@ class FTPHandler(socketserver.BaseRequestHandler):
         except KeyError:
             return Response("10002")
 
-        FTPHandler.log.info("auth: %s" % username_)
+        log.info("auth: %s" % username_)
 
         return Response("0")
 
@@ -63,7 +63,7 @@ class FTPHandler(socketserver.BaseRequestHandler):
 class Main():
     def __init__(self):
 
-        self.logger = get_logger("Main")
+
 
         useage = '''Usage: start-ftp-server.py -o <operation> [options] arg1 arg2 ...'''
         self.parser = optparse.OptionParser(useage)
@@ -107,9 +107,9 @@ class Main():
         '''
         server = self.options.server
         port = self.options.port
-        self.logger.info("start server at %s:%s" % (server, port))
+        log.info("start server at %s:%s" % (server, port))
         tcp_server = socketserver.ThreadingTCPServer((server, port), FTPHandler)
         try:
             tcp_server.serve_forever()
         except KeyboardInterrupt as e:
-            self.logger.info("server is stop")
+            log.info("server is stop")

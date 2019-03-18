@@ -8,6 +8,7 @@ import optparse
 from common.logging import get_logger
 import json
 
+log = get_logger("client")
 
 def render_in(self, *args):
     print("[in]: " + " ".join(args))
@@ -43,7 +44,6 @@ class Handler():
 
 
 class Client():
-    log = get_logger("ClientHandler")
 
     def __init__(self):
         self.parser = optparse.OptionParser()
@@ -66,7 +66,7 @@ class Client():
         if self.port > 0 and self.port < 65535:
             return True
         else:
-            Client.log.info("%s is not between 0 and 65535" % str(self.port))
+            log.info("%s is not between 0 and 65535" % str(self.port))
             return False
 
     def make_connect(self):
@@ -76,7 +76,7 @@ class Client():
     def interactive(self):
         # 认证
         authentication_res = self.authentication()
-        Client.log.info(authentication_res)
+        log.info(authentication_res)
         code_ = authentication_res["code"]
         if code_ == "0":
             print("login success")
@@ -125,7 +125,7 @@ class Client():
         return self.login()
 
     def login(self):
-        Client.log.info("login ...")
+        log.info("login ...")
         req = {
             "username": self.username,
             "password": self.password
