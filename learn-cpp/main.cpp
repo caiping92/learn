@@ -1,7 +1,9 @@
-#include <iostream>
-#include "baiss/opp.h"
+
+#include <demo_runner.h>
 
 int main() {
-    oopRun();
+
+    learn::demo::start_demo();
+
     return 0;
 }

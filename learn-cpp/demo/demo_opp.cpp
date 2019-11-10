@@ -2,7 +2,7 @@
 // Created by caiping on 2019/4/5.
 //
 
-#include "opp.h"
+#include "demo_opp.h"
 #include <iostream>
 
 using namespace std;
@@ -104,9 +104,6 @@ void oopRun() {
 }
 
 
-
-
-
 void PrintData::print(int i) {
     cout << "int: " << i << endl;
 }
@@ -117,4 +114,12 @@ void PrintData::print(double f) {
 
 void PrintData::print(char *c) {
     cout << "char: " << *c << endl;
+}
+
+void learn::demo::OOP::run() {
+  oopRun();
+}
+
+void learn::demo::OOP::name(std::string &name) {
+    name = "OOP";
 }
