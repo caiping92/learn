@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 11)
 include_directories(demo)
 
 file(GLOB file_src_demo demo/*.cpp)
-set(src_demo ${file_src_demo})
+set(src_demo ${file_src_demo} demo/demo_data_type.cpp demo/demo_data_type.h)
 message(STATUS "==> demos: ${src_demo}")
 add_executable(
         learn_cpp

@@ -22,7 +22,6 @@ public class ClientTimeHandler extends ChannelHandlerAdapter {
         req = (t + System.getProperty(Constants.LINE_SEPARATOR)).getBytes();
     }
 
-    @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
 
 //        发送 100 次
@@ -34,7 +33,6 @@ public class ClientTimeHandler extends ChannelHandlerAdapter {
         }
     }
 
-    @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
         ByteBuf buf = (ByteBuf) msg;

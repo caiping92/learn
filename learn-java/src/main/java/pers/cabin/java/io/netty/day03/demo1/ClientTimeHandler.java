@@ -17,12 +17,10 @@ public class ClientTimeHandler extends ChannelHandlerAdapter {
         fistMsg.writeBytes(req);
     }
 
-    @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         ctx.writeAndFlush(fistMsg);
     }
 
-    @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
         ByteBuf buf = (ByteBuf) msg;

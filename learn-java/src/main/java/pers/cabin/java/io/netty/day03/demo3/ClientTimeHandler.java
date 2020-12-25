@@ -15,7 +15,6 @@ public class ClientTimeHandler extends ChannelHandlerAdapter {
     public ClientTimeHandler() {
     }
 
-    @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
 //        发送 100 次
         ByteBuf fistMsg = null;
@@ -31,7 +30,6 @@ public class ClientTimeHandler extends ChannelHandlerAdapter {
         }
     }
 
-    @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
         String body = (String) msg;

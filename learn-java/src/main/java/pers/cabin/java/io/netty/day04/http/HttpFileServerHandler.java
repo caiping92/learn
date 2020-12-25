@@ -11,10 +11,9 @@ public class HttpFileServerHandler extends SimpleChannelInboundHandler<FullHttpR
         this.url = url;
     }
 
+
     @Override
-    protected void messageReceived(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
-
-//        if (request.getDecoderResult())
-
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest) throws Exception {
+//        if (fullHttpRequest.getDecoderResult())
     }
 }

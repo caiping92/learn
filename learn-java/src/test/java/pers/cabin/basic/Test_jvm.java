@@ -1,4 +1,4 @@
-package pers.cabin.jichu;
+package pers.cabin.basic;
 
 import pers.cabin.vo.Person;
 

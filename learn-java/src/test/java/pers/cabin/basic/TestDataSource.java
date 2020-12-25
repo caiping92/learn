@@ -1,4 +1,4 @@
-package pers.cabin.jichu;
+package pers.cabin.basic;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;

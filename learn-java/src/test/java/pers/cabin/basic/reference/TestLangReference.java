@@ -1,4 +1,4 @@
-package pers.cabin.jichu.reference;
+package pers.cabin.basic.reference;
 
 import org.junit.Test;
 

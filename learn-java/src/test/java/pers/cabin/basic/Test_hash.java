@@ -1,4 +1,4 @@
-package pers.cabin.jichu;
+package pers.cabin.basic;
 
 /**
  * Created by caiping on 2017/10/20.

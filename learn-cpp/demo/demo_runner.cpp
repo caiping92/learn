@@ -6,6 +6,22 @@
 
 #include <iostream>
 #include <demo_opp.h>
+#include <demo_data_type.h>
+
+void learn::demo::init_demo() {
+
+    //*************************
+    // 添加demo
+    //*************************
+    std::shared_ptr<demo_runner> ptrDemoOOP = std::make_shared<OOP>();
+    demos.push_back(ptrDemoOOP);
+
+std::shared_ptr<demo_runner> demo_data_type = std::make_shared<demo::demo_data_type>();
+    demos.push_back(demo_data_type);
+
+
+
+}
 
 
 void learn::demo::start_demo() {
@@ -28,18 +44,6 @@ void learn::demo::start_demo() {
         itr->get()->run();
         learn::demo::demos.erase(itr++);
     }
-
-}
-
-void learn::demo::init_demo() {
-
-    //*************************
-    // 添加demo
-    //*************************
-    std::shared_ptr<OOP> ptrDemoOOP = std::make_shared<OOP>();
-    demos.push_back(ptrDemoOOP);
-
-
 
 }
 
