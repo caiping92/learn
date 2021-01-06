@@ -3,6 +3,8 @@ package pers.cabin.java.thread;
 import org.openjdk.jol.info.ClassLayout;
 import pers.cabin.java.StdOut;
 
+import java.util.Arrays;
+
 public class ClassDemo {
 
     public static void main(String[] args) {
